@@ -25,13 +25,13 @@ class tunez_machine(threading.Thread):
 # Webserver backend
 class serv_backend(http.server.BaseHTTPRequestHandler):
     def do_HEAD(self):
-        dprint("HEAD", 1)
+        dprint(self.requestline, 1)
         
     def do_GET(self):
-        dprint("GET", 1)
+        dprint(self.requestline, 1)
         
     def go_POST(self):
-        dprint("POST", 1)        
+        dprint(self.requestline, 1)        
 
 # Make an array of mp3 files    
 def getMusic(where=''):
