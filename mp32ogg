@@ -4,7 +4,7 @@
 import os
 import subprocess
 
-_debug_ = True
+_debug_ = False
 _decode_ = '/usr/bin/lame --decode '
 _normal_ = '/usr/bin/normalize '
 _encode_ = 'oggenc -q7 --output='
@@ -24,7 +24,7 @@ for root, folders, files in os.walk(_working_):
 		newfold = os.path.join(root, folder).replace(_working_, _outputs_)
 		dprint('Creating directory: ' + newfold)
 		try:
-			if (not os.path.exists(newfold):
+			if (not os.path.exists(newfold)):
 				os.makedirs(newfold)
 		except:
 			raise
