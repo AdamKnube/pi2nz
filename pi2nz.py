@@ -171,7 +171,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                         self.showpage('Forcing ' + str(forced) + ': ' + thetune[len(_music_folder_)+1:])
                         return
             else: 
-                dprint('Rejecting blank query')
+                dprint('Rejecting blank or malformed query')
         self.showpage()
                  
     def do_POST(self):
@@ -181,7 +181,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         length = int(self.headers['Content-Length'])
         post_data = urllib.parse.parse_qs(self.rfile.read(length).decode('utf-8'))
         for item in post_data:
-            if (item == 'playstop'):
+            if (item == 'play'):
                 _the_tunez_.play()
                 self.showpage()
                 return
@@ -220,7 +220,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         dprint('POST request had no usable variables.')
         self.showpage('Error')
 
-    def showpage(self, info=''):
+    def showpage(self, info = ''):
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()

@@ -12,7 +12,7 @@ _working_ = '/home/knube/Music'
 _outputs_ = '/home/knube/tmp/Music'
 
 # Debug printer
-def dprint(data='', force = False):
+def dprint(data = '', force = False):
     if ((_debug_ == False) and (force == False)): return
     if (data == ''):
         print('dprint() called with no data!')
@@ -53,7 +53,7 @@ for root, folders, files in os.walk(_working_):
 			os.remove(wavename)
 			dprint('Re-locating OGG file')
 			os.rename(newname, os.path.join(root, file).replace(_working_, _outputs_))
+            dprint('----------------------------------------------------------------------', True)
 		else:
 			dprint('Ignoring: ' + fullname)
-		dprint('----------------------------------------------------------------------', True)
-
+exit(0)
