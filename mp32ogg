@@ -18,7 +18,8 @@ def dprint(data = '', force = False):
         print('dprint() called with no data!')
         return
     print(data)
-
+    
+dprint('----------------------------------------------------------------------', True)
 for root, folders, files in os.walk(_working_):
 	for folder in folders:
 		newfold = os.path.join(root, folder).replace(_working_, _outputs_)
