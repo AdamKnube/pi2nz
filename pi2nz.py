@@ -39,7 +39,6 @@ def getMusic(where=''):
                 dprint('Added: ' + thisfile)
             else: dprint('Ignored: ' + thisfile + ' (' + thisfile[-4:].lower() + ')')
     return templist
-_the_list_ = getMusic(_music_folder_)    
 
 # Music player
 class tunez_machine(threading.Thread):   
@@ -260,11 +259,12 @@ _killer_ = kthread()
 
 def runmain():
     global _debug_
+    global _the_list_
     global _bind_port_
     global _bind_address_
     global _music_folder_    
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--root", help = "Music Folder")
+    parser = argparse.ArgumentParser(description = 'Python3 music player with http remote control.')
+    parser.add_argument("root", help = "Music Folder")
     parser.add_argument("-a", "--address", help = "Bind Address")
     parser.add_argument("-p", "--port", help = "Bind Port", type = int)
     parser.add_argument("-d", "--debug", help = "Debug Output", action = "store_true")
@@ -273,9 +273,11 @@ def runmain():
     if (args.address): _bind_address_ = args.address
     if (args.port): _bind_port_ = args.port
     if (args.root): _music_folder_ = args.root
-    dprint('Starting music player in ' + _music_folder_, True)    
+    dprint('')
+    _the_list_ = getMusic(_music_folder_)
+    dprint('Starting music player.' + _music_folder_, True)    
     _the_tunez_.start()
-    dprint('Starting webserver at http://' + _bind_address_ + ':' + _bind_port_ + '/', True)
+    dprint('Starting webserver at http://' + _bind_address_ + ':' + _bind_port_ + '/.', True)
     _the_server_.serve_forever()
     _the_tunez_.join()
     dprint('Goodbye.', True)
