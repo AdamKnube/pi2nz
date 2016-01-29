@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 #
 
-#==============================================================================#
-_debug_ = True                                      # debug mode
-_killer_ = None                                     # shutdown thread
-_the_list_ = None                                   # the playlist
-_the_tunez_ = None                                  # music thread
-_the_server_ = None                                 # webserver thread
-_bind_port_ = 80                                    # bind port
-_bind_address_ = '192.168.199.100'                  # bind address
-_music_folder_ = '/Music_ogg'                       # music folder
-#==============================================================================#
-
 import os
 import pygame
 import random
+import argparse
 import threading
 import http.server
 import urllib.parse
 from time import sleep
+
+_debug_ = False                                     # debug mode
+_bind_port_ = 80                                    # bind port
+_bind_address_ = ''                                 # bind address
+_music_folder_ = '/'                                # music folder
+_killer_ = None                                     # shutdown thread
+_the_list_ = None                                   # the playlist
+_the_tunez_ = None                                  # music thread
+_the_server_ = None                                 # webserver thread
 
 # Debug printer
 def dprint(data='', force = False):
@@ -51,7 +50,7 @@ class tunez_machine(threading.Thread):
         self.active = True
         self.playing = False        
         self.shuffle = False     
-        self.wasstopped = False
+        self.wasstopped = Falseinfo
         if (self.shuffle): self.thelist = shuffle(music_list)
         else: self.thelist = sorted(music_list)
         pygame.mixer.init()                
@@ -172,6 +171,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                         self.showpage('Forcing ' + str(forced) + ': ' + thetune[len(_music_folder_)+1:])
                         return
                     elif (key == 'halt'):
+                        self.showpage('Shutting Down')
                         _killer_.start()
                         return
             else: 
@@ -259,6 +259,20 @@ class kthread(threading.Thread):
 _killer_ = kthread()
 
 def runmain():
+    global _debug_
+    global _bind_port_
+    global _bind_address_
+    global _music_folder_    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--root", help = "Music Folder")
+    parser.add_argument("-a", "--address", help = "Bind Address")
+    parser.add_argument("-p", "--port", help = "Bind Port", type = int)
+    parser.add_argument("-d", "--debug", help = "Debug Output", action = "store_true")
+    args = parser.parse_args()
+    if (args.debug): _debug_ = True
+    if (args.address): _bind_address_ = args.address
+    if (args.port): _bind_port_ = args.port
+    if (args.root): _music_folder_ = args.root    
     _the_tunez_.start()
     _the_server_.serve_forever()
     _the_tunez_.join()
