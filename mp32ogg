@@ -8,8 +8,8 @@ _debug_ = False
 _decode_ = '/usr/bin/lame --decode '
 _normal_ = '/usr/bin/normalize '
 _encode_ = 'oggenc -q7 --output='
-_working_ = '/home/knube/Music'
-_outputs_ = '/home/knube/tmp/Music'
+_working_ = '/Music'
+_outputs_ = '/Music_ogg'
 
 # Debug printer
 def dprint(data = '', force = False):
@@ -19,6 +19,9 @@ def dprint(data = '', force = False):
 		return
 	print(data)
 	
+dprint('----------------------------------------------------------------------', True)
+dprint('mp32ogg - converts a directory (recursively) of .mp3 files into', True)
+dprint('          another directory full of normalized* .ogg files. - AK 2016', True)	
 dprint('----------------------------------------------------------------------', True)
 for root, folders, files in os.walk(_working_):
 	for folder in folders:
@@ -39,20 +42,17 @@ for root, folders, files in os.walk(_working_):
 			song = file[:-4]
 			dprint('Found: ' + fullname, True)
 			dprint('Decoding: ' + song)
-			decode = _decode_
-			decode += '"' + fullname + '"'
+			decode = _decode_ + '"' + fullname + '"'
 			wtf1 = subprocess.run(decode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
 			dprint('Normalizing: ' + song)
-			normal = _normal_
-			normal += '"' + wavename + '"'
+			normal = _normal_ + '"' + wavename + '"'
 			wtf2 = subprocess.run(normal, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)			
 			dprint('Encoding: ' + song)
-			encode = _encode_
-			encode += '"' + oggname + '" "' + wavename + '"'
+			encode = _encode_ + '"' + oggname + '" "' + wavename + '"'
 			wtf3 = subprocess.run(encode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
-			dprint('Cleaning up temporary files')
+			dprint('Cleaning up temporary wav file')
 			os.remove(wavename)
-			dprint('Re-locating OGG file')
+			dprint('Re-locating ' + oggname + ' => ' + _outputs_)
 			os.rename(oggname, oggname.replace(_working_, _outputs_))
 			dprint('----------------------------------------------------------------------', True)
 		else:
