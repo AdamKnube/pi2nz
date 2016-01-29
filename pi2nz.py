@@ -237,7 +237,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'<td align=center><input type="text" name="query" value="" /></td>\n')
         self.wfile.write(b'<td align=center><input type="submit" name="search" value="Search" /></td>\n')
         self.wfile.write(b'</tr><tr>')
-        self.wfile.write(b'<td align=center><input type="submit" name="playstop" value="Play/Stop" /></td>\n')
+        self.wfile.write(b'<td align=center><input type="submit" name="play" value="Play/Stop" /></td>\n')
         self.wfile.write(b'<td align=center><input type="submit" name="shuffle" value="Shuffle" /></td>\n')
         self.wfile.write(b'</tr><tr>')
         self.wfile.write(b'<td align=center><input type="submit" name="back" value="<= Back" /></td>\n')
