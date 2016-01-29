@@ -228,7 +228,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'<center><h1><font color="#00FF00">pi2nz web interface</font></h1></center>')
         if (info == ''): self.wfile.write(b'<center>' + _the_tunez_.status().encode('utf-8') + b'</center><br>')
         else: self.wfile.write(b'<center>' + info.encode('utf-8') + b'</center><br>')
-        self.wfile.write(b'<form action="http://' + self.server.server_name.encode('utf-8') + b':' + self.server.server_port.encode('utf-8') + b'/" method="POST">\n')
+        self.wfile.write(b'<form action="http://' + self.server.server_name.encode('utf-8') + b':' + str(self.server.server_port).encode('utf-8') + b'/" method="POST">\n')
         self.wfile.write(b'<center><table width=100%>')
         self.wfile.write(b'<tr>')
         self.wfile.write(b'<td align=center><input type="text" name="query" value="" /></td>\n')
