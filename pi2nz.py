@@ -31,13 +31,13 @@ def dprint(data='', force = False):
 # Make an array of mp3 files    
 def getMusic(where=''):
     templist = []
-    dprint('Testing: ' + _music_folder_ + '...', False)
+    dprint('Testing: ' + _music_folder_ + '...')
     for root, folders, files in os.walk(where):
         for thisfile in files:
             absolute = os.path.join(root, thisfile)    
             if ( thisfile[-4:].lower() == '.ogg'):
                 templist.append(absolute)
-                dprint('Added: ' + thisfile, False)
+                dprint('Added: ' + thisfile)
             else: dprint('Ignored: ' + thisfile + ' (' + thisfile[-4:].lower() + ')')
     return templist
 _the_list_ = getMusic(_music_folder_)    
@@ -57,7 +57,7 @@ class tunez_machine(threading.Thread):
         pygame.mixer.init()                
     
     def run(self):
-        dprint("Music thread running.", True)
+        dprint("Music thread running.")
         while (self.active):
             if ((self.playing == True) and (pygame.mixer.music.get_busy() == 0)):
                 if ((self.current < 0) or (self.current >= len(self.thelist))):
@@ -219,7 +219,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
             self.showpage(_the_tunez_.search(setq[2:-2]))
             return
         dprint('POST request had no usable variables.')
-        self.showpage('Error')
+        self.showpage()
 
     def showpage(self, info = ''):
         global _bind_port_
