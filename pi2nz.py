@@ -171,6 +171,9 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                         thetune = _the_tunez_.thelist[_the_tunez_.force(forced)]
                         self.showpage('Forcing ' + str(forced) + ': ' + thetune[len(_music_folder_)+1:])
                         return
+                    elif (key == 'halt'):
+                        _killer_.start()
+                        return
             else: 
                 dprint('Rejecting blank or malformed query')
         self.showpage()
