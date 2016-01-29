@@ -8,7 +8,7 @@ _the_list_ = None                                   # the playlist
 _the_tunez_ = None                                  # music thread
 _the_server_ = None                                 # webserver thread
 _bind_address_ = ('', 8080)                         # bind address/port
-_music_folder_ = '/home/knube/tmp/Music'            # music folder
+_music_folder_ = '/Music_ogg'                       # music folder
 #==============================================================================#
 
 import os
