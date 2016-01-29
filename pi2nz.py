@@ -20,7 +20,7 @@ _the_tunez_ = None                                  # music thread
 _the_server_ = None                                 # webserver thread
 
 # Debug printer
-def dprint(data='', force = False):
+def dprint(data = '', force = False):
     if ((_debug_ == False) and (force == False)): return
     if (data == ''): 
         print('dprint() called with no data!')
@@ -28,7 +28,7 @@ def dprint(data='', force = False):
     print(data)
            
 # Make an array of mp3 files    
-def getMusic(where=''):
+def getMusic(where = ''):
     templist = []
     dprint('Searching: ' + _music_folder_)
     for root, folders, files in os.walk(where):
@@ -43,7 +43,7 @@ def getMusic(where=''):
 # Music player
 class tunez_machine(threading.Thread):   
     def __init__(self, music_list):
-        dprint("Music thread initializing with " + str(len(music_list) + 1) + " songs.", True)
+        dprint('Music thread initializing...')
         threading.Thread.__init__(self)
         self.current = -1
         self.active = True
@@ -146,7 +146,6 @@ class tunez_machine(threading.Thread):
     def die(self):
         if (self.playing): self.play()
         self.active = False
-_the_tunez_ = tunez_machine(_the_list_)
    
 # Webserver backend
 class serv_backend(http.server.BaseHTTPRequestHandler):
@@ -247,7 +246,6 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'</tr></table><br>')
         self.wfile.write(b'<input type="submit" name="halt" value="Halt" />')
         self.wfile.write(b'</center></form></body></html>\n\n')
-_the_server_ = http.server.HTTPServer((_bind_address_, _bind_port_), serv_backend)
 
 class kthread(threading.Thread):
     global _the_tunez_
@@ -255,7 +253,6 @@ class kthread(threading.Thread):
     def run(self):
         _the_tunez_.die()
         _the_server_.shutdown()
-_killer_ = kthread()
 
 def runmain():
     global _debug_
@@ -263,6 +260,9 @@ def runmain():
     global _bind_port_
     global _bind_address_
     global _music_folder_    
+    global _the_tunez_
+    global _the_server_
+    global _killer_
     parser = argparse.ArgumentParser(description = 'Python3 music player with http remote control.')
     parser.add_argument("root", help = "Music Folder")
     parser.add_argument("-a", "--address", help = "Bind Address")
@@ -273,11 +273,14 @@ def runmain():
     if (args.address): _bind_address_ = args.address
     if (args.port): _bind_port_ = args.port
     if (args.root): _music_folder_ = args.root
-    dprint('')
+    _killer_ = kthread()
+    dprint('Searching for OGG files in ' + _music_folder_ + '.', True)
     _the_list_ = getMusic(_music_folder_)
-    dprint('Starting music player.' + _music_folder_, True)    
+    dprint('Starting music player with ' + len(_the_tunes_) + ' songs.', True)    
+    _the_tunez_ = tunez_machine(_the_list_)
     _the_tunez_.start()
     dprint('Starting webserver at http://' + _bind_address_ + ':' + _bind_port_ + '/.', True)
+    _the_server_ = http.server.HTTPServer((_bind_address_, _bind_port_), serv_backend)
     _the_server_.serve_forever()
     _the_tunez_.join()
     dprint('Goodbye.', True)
