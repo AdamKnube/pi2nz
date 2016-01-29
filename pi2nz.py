@@ -276,7 +276,7 @@ def runmain():
     _killer_ = kthread()
     dprint('Searching for OGG files in ' + _music_folder_ + '.', True)
     _the_list_ = getMusic(_music_folder_)
-    dprint('Starting music player with ' + len(_the_tunes_) + ' songs.', True)    
+    dprint('Starting music player with ' + len(_the_list_) + ' songs.', True)    
     _the_tunez_ = tunez_machine(_the_list_)
     _the_tunez_.start()
     dprint('Starting webserver at http://' + _bind_address_ + ':' + _bind_port_ + '/.', True)
