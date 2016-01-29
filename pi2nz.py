@@ -30,7 +30,7 @@ def dprint(data='', force = False):
 # Make an array of mp3 files    
 def getMusic(where=''):
     templist = []
-    dprint('Testing: ' + _music_folder_ + '...')
+    dprint('Searching: ' + _music_folder_)
     for root, folders, files in os.walk(where):
         for thisfile in files:
             absolute = os.path.join(root, thisfile)    
@@ -44,7 +44,7 @@ _the_list_ = getMusic(_music_folder_)
 # Music player
 class tunez_machine(threading.Thread):   
     def __init__(self, music_list):
-        dprint("Music thread initializing with " + str(len(music_list) + 1) + " songs.")
+        dprint("Music thread initializing with " + str(len(music_list) + 1) + " songs.", True)
         threading.Thread.__init__(self)
         self.current = -1
         self.active = True
@@ -75,7 +75,7 @@ class tunez_machine(threading.Thread):
             elif (self.playing == False) and (pygame.mixer.music.get_busy() > 0):
                 pygame.mixer.music.stop()
             sleep(0.5)            
-        dprint('Music thread dies.', True)
+        dprint('Music thread dies.')
                 
     def search(self, search = ''):
         dprint('Searching for: ' + search)
@@ -272,10 +272,13 @@ def runmain():
     if (args.debug): _debug_ = True
     if (args.address): _bind_address_ = args.address
     if (args.port): _bind_port_ = args.port
-    if (args.root): _music_folder_ = args.root    
+    if (args.root): _music_folder_ = args.root
+    dprint('Starting music player in ' + _music_folder_, True)    
     _the_tunez_.start()
+    dprint('Starting webserver at http://' + _bind_address_ + ':' + _bind_port_ + '/', True)
     _the_server_.serve_forever()
     _the_tunez_.join()
+    dprint('Goodbye.', True)
     return 0
 
 if (__name__ == '__main__'):
