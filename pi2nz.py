@@ -8,7 +8,7 @@ _the_list_ = None                                   # the playlist
 _the_tunez_ = None                                  # music thread
 _the_server_ = None                                 # webserver thread
 _bind_address_ = ('', 8080)                         # bind address/port
-_music_folder_ = '/mnt/store/Media/Audio/Music'     # mp3 music folder
+_music_folder_ = '/Music_ogg'     # mp3 music folder
 #==============================================================================#
 
 import os
@@ -34,10 +34,10 @@ def getMusic(where=''):
     for root, folders, files in os.walk(where):
         for thisfile in files:
             absolute = os.path.join(root, thisfile)    
-            if ( thisfile[-4:].lower() == '.mp3'):
+            if ( thisfile[-4:].lower() == '.ogg'):
                 templist.append(absolute)
                 dprint('Added: ' + thisfile, False)
-            else: dprint('Ignored: ' + thisfile + ' (' + thisfile[-4:].lower() + ')', False)
+            else: dprint('Ignored: ' + thisfile + ' (' + thisfile[-4:].lower() + ')')
     return templist
 _the_list_ = getMusic(_music_folder_)    
 
