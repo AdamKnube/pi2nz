@@ -8,7 +8,7 @@ _the_list_ = None                                   # the playlist
 _the_tunez_ = None                                  # music thread
 _the_server_ = None                                 # webserver thread
 _bind_address_ = ('', 8080)                         # bind address/port
-_music_folder_ = '/Music_ogg'     # mp3 music folder
+_music_folder_ = '/home/knube/tmp/Music'            # music folder
 #==============================================================================#
 
 import os
@@ -77,7 +77,7 @@ class tunez_machine(threading.Thread):
             sleep(0.5)            
         dprint('Music thread dies.', True)
                 
-    def search(self, search=''):
+    def search(self, search = ''):
         dprint('Searching for: ' + search)
         found = []
         findstr = '<br><font size=+2><u>Search Results:</u></font><br>'
@@ -228,7 +228,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'<center><h1><font color="#00FF00">pi2nz web interface</font></h1></center>')
         if (info == ''): self.wfile.write(b'<center>' + _the_tunez_.status().encode('utf-8') + b'</center><br>')
         else: self.wfile.write(b'<center>' + info.encode('utf-8') + b'</center><br>')
-        self.wfile.write(b'<form action="http://127.0.0.1:8080/" method="POST">\n')
+        self.wfile.write(b'<form action="http://' + self.server.server_address + ':' + self.server.server_port + '/" method="POST">\n')
         self.wfile.write(b'<center><table width=100%>')
         self.wfile.write(b'<tr>')
         self.wfile.write(b'<td align=center><input type="text" name="query" value="" /></td>\n')
