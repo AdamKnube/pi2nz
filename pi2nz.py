@@ -7,7 +7,8 @@ _killer_ = None                                     # shutdown thread
 _the_list_ = None                                   # the playlist
 _the_tunez_ = None                                  # music thread
 _the_server_ = None                                 # webserver thread
-_bind_address_ = ('', 8080)                         # bind address/port
+_bind_port_ = 80                                    # bind port
+_bind_address_ = '192.168.199.100'                  # bind address
 _music_folder_ = '/Music_ogg'                       # music folder
 #==============================================================================#
 
@@ -242,7 +243,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'</tr></table><br>')
         self.wfile.write(b'<input type="submit" name="halt" value="Halt" />')
         self.wfile.write(b'</center></form></body></html>\n\n')
-_the_server_ = http.server.HTTPServer(_bind_address_, serv_backend)
+_the_server_ = http.server.HTTPServer((_bind_address_, _bind_port_), serv_backend)
 
 class kthread(threading.Thread):
     global _the_tunez_
