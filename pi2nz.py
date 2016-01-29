@@ -50,7 +50,7 @@ class tunez_machine(threading.Thread):
         self.active = True
         self.playing = False        
         self.shuffle = False     
-        self.wasstopped = Falseinfo
+        self.wasstopped = False
         if (self.shuffle): self.thelist = shuffle(music_list)
         else: self.thelist = sorted(music_list)
         pygame.mixer.init()                
