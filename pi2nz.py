@@ -11,7 +11,7 @@ import urllib.parse
 from time import sleep
 
 _debug_ = False                                     # debug mode
-_bind_port_ = 80                                    # bind port
+_bind_port_ = 8080                                  # bind port
 _bind_address_ = ''                                 # bind address
 _music_folder_ = '/'                                # music folder
 _killer_ = None                                     # shutdown thread
@@ -140,7 +140,7 @@ class tunez_machine(threading.Thread):
     
     def status(self):
         thestr = 'Playing: ' + str(self.playing) + ', Shuffle: ' + str(self.shuffle) + '\n'
-        if (self.current > -1): thestr = thestr + '<br>[' + str(self.current+1) + '/' + str(len(self.thelist)) + '] ' + self.thelist[self.current] + '\n'
+        if (self.current > -1): thestr = thestr + '<br>[' + str(self.current+1) + '/' + str(len(self.thelist)) + '] ' + self.thelist[self.current][len(_music_folder_)+1:] + '\n'
         return thestr
     
     def die(self):
