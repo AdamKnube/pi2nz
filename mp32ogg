@@ -23,6 +23,7 @@ dprint('----------------------------------------------------------------------',
 dprint('mp32ogg - converts a directory (recursively) of .mp3 files into', True)
 dprint('          another directory full of normalized* .ogg files. - AK 2016', True)	
 dprint('----------------------------------------------------------------------', True)
+
 for root, folders, files in os.walk(_working_):
 	for folder in folders:
 		newfold = os.path.join(root, folder).replace(_working_, _outputs_)

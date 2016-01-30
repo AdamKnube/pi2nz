@@ -10,6 +10,7 @@ import http.server
 import urllib.parse
 from time import sleep
 
+_version_ = 1.0                                     # version
 _debug_ = False                                     # debug mode
 _bind_port_ = 8080                                  # bind port
 _bind_address_ = ''                                 # bind address
@@ -28,9 +29,9 @@ def dprint(data = '', force = False):
     print(data)
            
 # Make an array of mp3 files    
-def getMusic(where = ''):
+def get_music(where = ''):
     templist = []
-    dprint('Searching: ' + _music_folder_)
+    dprint('Searching: ' + where)
     for root, folders, files in os.walk(where):
         for thisfile in files:
             absolute = os.path.join(root, thisfile)    
@@ -89,7 +90,7 @@ class tunez_machine(threading.Thread):
         if (isfound):
             for find in found: 
                 findstr = findstr + '<a href="/?force=' + str(find) + '">'
-                findstr = findstr + self.thelist[find][(len(_music_folder_)+1):] + '</a><br>'
+                findstr = findstr + self.thelist[find][(len(_music_folder_)+1):-4] + '</a><br>'
             return findstr
         else: return '"' + search + '" not found in list.'
     
@@ -138,9 +139,14 @@ class tunez_machine(threading.Thread):
         if (self.current > -1): self.current = self.find(tmp)
         return retstr 
     
+    def volume(self, newvol = -1):
+        if ((newvol >= 0) and (newvol <= 100)):
+            pygame.mixer.music.set_volume(newvol / 100)
+        return pygame.mixer.music.get_volume() 
+       
     def status(self):
-        thestr = 'Playing: ' + str(self.playing) + ', Shuffle: ' + str(self.shuffle) + '\n'
-        if (self.current > -1): thestr = thestr + '<br>[' + str(self.current+1) + '/' + str(len(self.thelist)) + '] ' + self.thelist[self.current][len(_music_folder_)+1:] + '\n'
+        thestr = 'Playing: ' + str(self.playing) + ', Shuffle: ' + str(self.shuffle) + ', Volume: ' + str(int(self.volume() * 100))
+        if (self.current > -1): thestr = thestr + '<br>[' + str(self.current+1) + '/' + str(len(self.thelist)) + '] ' + self.thelist[self.current][len(_music_folder_)+1:-4] + '\n'
         return thestr
     
     def die(self):
@@ -165,8 +171,8 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                     if (key == 'force'):
                         force1 = query[key][0]
                         forced = int(force1)
-                        thetune = _the_tunez_.thelist[_the_tunez_.force(forced)]
-                        self.showpage('Forcing ' + str(forced) + ': ' + thetune[len(_music_folder_)+1:])
+                        _the_tunez_.thelist[_the_tunez_.force(forced)]
+                        self.showpage()
                         return
                     elif (key == 'halt'):
                         self.showpage('Shutting Down')
@@ -214,8 +220,25 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 self.showpage()
                 return
             elif (item == 'halt'):
+                self.showpage('Shutting Down')
                 _killer_.start()
                 return
+            elif (item == 'v25'):
+                _the_tunez_.volume(25)
+                self.showpage()
+                return
+            elif (item == 'v50'):
+                _the_tunez_.volume(50)
+                self.showpage()
+                return
+            elif (item == 'v75'):
+                _the_tunez_.volume(75)
+                self.showpage()
+                return
+            elif (item == 'v100'):
+                _the_tunez_.volume(100)
+                self.showpage()
+                return                                                                
         if ((sets == True) and (setq != '')): 
             self.showpage(_the_tunez_.search(setq[2:-2]))
             return
@@ -223,30 +246,36 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.showpage()
 
     def showpage(self, info = ''):
+        global _version_
         global _bind_port_
         global _bind_address_
         self.send_response(200)
         self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(b'<html><head><title>pi2nz</title></head><body bgcolor="#000000" text="#FFFFFF">\n')
-        self.wfile.write(b'<center><h1><font color="#00FF00">pi2nz web interface</font></h1></center>')
-        if (info == ''): self.wfile.write(b'<center>' + _the_tunez_.status().encode('utf-8') + b'</center><br>')
-        else: self.wfile.write(b'<center>' + info.encode('utf-8') + b'</center><br>')
+        self.wfile.write(b'<center><h1><font color="#00FF00">pi2nz v' + str(_version_).encode('utf-8') + b'</font></h1></center>')
+        if (info == ''): self.wfile.write(b'<center><font size=+1>' + _the_tunez_.status().encode('utf-8') + b'</font></center><br>')
+        else: self.wfile.write(b'<center><font size=+1>' + info.encode('utf-8') + b'</font></center><br>')
         (who, where) = self.request.getsockname()
-        self.wfile.write(b'<form action="http://' + who.encode('utf-8') + b':' + str(_bind_port_).encode('utf-8') + b'/" method="POST">\n')
-        self.wfile.write(b'<center><table width=100%>')
-        self.wfile.write(b'<tr>')
-        self.wfile.write(b'<td align=center><input type="text" name="query" value="" /></td>\n')
-        self.wfile.write(b'<td align=center><input type="submit" name="search" value="Search" /></td>\n')
+        self.wfile.write(b'<form action="http://' + who.encode('utf-8') + b':' + str(where).encode('utf-8') + b'/" method="POST">\n')
+        self.wfile.write(b'<center><table><tr>')
+        self.wfile.write(b'<td align=center colspan=2><input type="text" name="query" value="" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center colspan=2><input type="submit" name="search" value="Search" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
         self.wfile.write(b'</tr><tr>')
-        self.wfile.write(b'<td align=center><input type="submit" name="play" value="Play/Stop" /></td>\n')
-        self.wfile.write(b'<td align=center><input type="submit" name="shuffle" value="Shuffle" /></td>\n')
+        self.wfile.write(b'<td align=center colspan=2><input type="submit" name="play" value="Play/Stop" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center colspan=2><input type="submit" name="shuffle" value="Shuffle" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
         self.wfile.write(b'</tr><tr>')
-        self.wfile.write(b'<td align=center><input type="submit" name="back" value="<= Back" /></td>\n')
-        self.wfile.write(b'<td align=center><input type="submit" name="next" value="Next =>" /></td>\n')        
-        self.wfile.write(b'</tr></table><br>')
-        self.wfile.write(b'<input type="submit" name="halt" value="Halt" />')
-        self.wfile.write(b'</center></form></body></html>\n\n')
+        self.wfile.write(b'<td align=center colspan=2><input type="submit" name="back" value="<= Back" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center colspan=2><input type="submit" name="next" value="Next =>" style="width: 400px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'</tr><tr>')
+        self.wfile.write(b'<td align=center><input type="submit" name="v25" value="25%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center><input type="submit" name="v50" value="50%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center><input type="submit" name="v75" value="75%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'<td align=center><input type="submit" name="v100" value="100%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
+        if (_debug_):
+            self.wfile.write(b'</tr><tr>')
+            self.wfile.write(b'<td align=center colspan=4><input type="submit" name="halt" value="Shut Down" style="width: 800px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'</tr></table><br></center></form></body></html>\n\n')
 
 class kthread(threading.Thread):
     global _the_tunez_
@@ -269,17 +298,23 @@ def runmain():
     parser.add_argument("-a", "--address", help = "Bind Address")
     parser.add_argument("-p", "--port", help = "Bind Port", type = int)
     parser.add_argument("-d", "--debug", help = "Debug Output", action = "store_true")
+    parser.add_argument("-s", "--start", help = "Start Playback", action = "store_true")
+    parser.add_argument("-r", "--random", help = "Start Randomized", action = "store_true")
+    parser.add_argument("-v", "--volume", help = "Initial Volume", type = int)
     args = parser.parse_args()
     if (args.debug): _debug_ = True
     if (args.address): _bind_address_ = args.address
     if (args.port): _bind_port_ = args.port
     if (args.root): _music_folder_ = args.root
     _killer_ = kthread()
-    dprint('Searching for OGG files in ' + _music_folder_ + '.', True)
-    _the_list_ = getMusic(_music_folder_)
+    dprint('Searching for OGG files in ' + _music_folder_ + '...', True)
+    _the_list_ = get_music(_music_folder_)
     dprint('Starting music player with ' + str(len(_the_list_)) + ' songs.', True)    
     _the_tunez_ = tunez_machine(_the_list_)
     _the_tunez_.start()
+    if (args.random): _the_tunez_.random()
+    if (args.volume): _the_tunez_.volume(args.volume)
+    if (args.start): _the_tunez_.play()
     showaddy = _bind_address_
     if (showaddy == ''): showaddy = '0.0.0.0'
     dprint('Starting webserver at http://' + showaddy + ':' + str(_bind_port_) + '/.', True)
