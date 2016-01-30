@@ -280,7 +280,9 @@ def runmain():
     dprint('Starting music player with ' + str(len(_the_list_)) + ' songs.', True)    
     _the_tunez_ = tunez_machine(_the_list_)
     _the_tunez_.start()
-    dprint('Starting webserver at http://' + _bind_address_ + ':' + str(_bind_port_) + '/.', True)
+    showaddy = _bind_address_
+    if (showaddy == ''): showaddy = '0.0.0.0'
+    dprint('Starting webserver at http://' + showaddy + ':' + str(_bind_port_) + '/.', True)
     _the_server_ = http.server.HTTPServer((_bind_address_, _bind_port_), serv_backend)
     _the_server_.serve_forever()
     _the_tunez_.join()
