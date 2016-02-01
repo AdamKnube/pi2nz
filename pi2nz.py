@@ -12,6 +12,7 @@ from time import sleep
 
 _version_ = 1.0                                     # version
 _debug_ = False                                     # debug mode
+_lagwagon_ = 0.5                                    # idle time
 _bind_port_ = 8080                                  # bind port
 _bind_address_ = ''                                 # bind address
 _music_folder_ = '/'                                # music folder
@@ -51,7 +52,7 @@ class tunez_machine(threading.Thread):
         self.playing = False        
         self.shuffle = False     
         self.wasstopped = False
-        if (self.shuffle): self.thelist = shuffle(music_list)
+        if (self.shuffle): self.thelist = random.shuffle(music_list)
         else: self.thelist = sorted(music_list)
         pygame.mixer.init()                
     
@@ -74,7 +75,7 @@ class tunez_machine(threading.Thread):
                 pygame.mixer.music.play()
             elif (self.playing == False) and (pygame.mixer.music.get_busy() > 0):
                 pygame.mixer.music.stop()
-            sleep(0.5)            
+            sleep(_lagwagon_)            
         dprint('Music thread dies.')
                 
     def search(self, search = ''):
@@ -89,8 +90,8 @@ class tunez_machine(threading.Thread):
                 isfound = True
         if (isfound):
             for find in found: 
-                findstr = findstr + '<a href="/?force=' + str(find) + '">'
-                findstr = findstr + self.thelist[find][(len(_music_folder_)+1):-4] + '</a><br>'
+                findstr += '<a href="/?force=' + str(find) + '">'
+                findstr += self.thelist[find][(len(_music_folder_)+1):-4] + '</a><br>'
             return findstr
         else: return '"' + search + '" not found in list.'
     
@@ -107,14 +108,13 @@ class tunez_machine(threading.Thread):
             dprint('Stop.')
             self.playing = False
             self.wasstopped = True
-            while (pygame.mixer.music.get_busy() > 0): sleep(0.5)
-            return 'Stopped'
+            while (pygame.mixer.music.get_busy() > 0): sleep(_lagwagon_)
         else: 
             dprint('Play.')
             self.playing = True
-            while (pygame.mixer.music.get_busy() == 0): sleep(0.5)
-            return 'Playing'
-        
+            while (pygame.mixer.music.get_busy() == 0): sleep(_lagwagon_)
+        return self.playing
+    
     def find(self, what=''):
         for x in range(0, len(self.thelist)-1):
             if (self.thelist[x] == what): return x
@@ -208,6 +208,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 if (_the_tunez_.playing):     
                     _the_tunez_.play()
                     _the_tunez_.play()
+                else : _the_tunez_.wasstopped = True
                 self.showpage()
                 return
             elif (item == 'back'):
@@ -217,6 +218,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 if (_the_tunez_.playing):     
                     _the_tunez_.play()
                     _the_tunez_.play()
+                else : _the_tunez_.wasstopped = True
                 self.showpage()
                 return
             elif (item == 'halt'):
@@ -293,6 +295,7 @@ def runmain():
     global _the_tunez_
     global _the_server_
     global _killer_
+    global _lagwagon_
     parser = argparse.ArgumentParser(description = 'Python3 music player with http remote control.')
     parser.add_argument("root", help = "Music Folder")
     parser.add_argument("-a", "--address", help = "Bind Address")
@@ -301,14 +304,19 @@ def runmain():
     parser.add_argument("-s", "--start", help = "Start Playback", action = "store_true")
     parser.add_argument("-r", "--random", help = "Start Randomized", action = "store_true")
     parser.add_argument("-v", "--volume", help = "Initial Volume", type = int)
+    parser.add_argument("-i", "--idle", help = "Idle time for sleep timers", type = float)
     args = parser.parse_args()
+    _music_folder_ = args.root
     if (args.debug): _debug_ = True
     if (args.address): _bind_address_ = args.address
     if (args.port): _bind_port_ = args.port
-    if (args.root): _music_folder_ = args.root
+    if (args.idle): _lagwagon_ = args.idle
     _killer_ = kthread()
     dprint('Searching for OGG files in ' + _music_folder_ + '...', True)
     _the_list_ = get_music(_music_folder_)
+    if (len(_the_list_) == 0): 
+        dprint('Error: No OGG music files were found!', True)
+        return 1
     dprint('Starting music player with ' + str(len(_the_list_)) + ' songs.', True)    
     _the_tunez_ = tunez_machine(_the_list_)
     _the_tunez_.start()
