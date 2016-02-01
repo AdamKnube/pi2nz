@@ -43,6 +43,7 @@ def runmain():
 				try: os.makedirs(newfold)
 				except: raise
 		x = 0
+		dprint('----------------------------------------------------------------------', True)
 		for file in files:
 			fullname = os.path.join(root, file)
 			if (file.lower()[-4:] == '.mp3'):
@@ -64,9 +65,9 @@ def runmain():
 				dprint('Cleaning up temporary wav file')
 				os.remove(wavename)
 				dprint('Re-locating ' + oggname + ' => ' + _outputs_)
-				os.rename(oggname, oggname.replace(_working_, _outputs_))
-				dprint('----------------------------------------------------------------------', True)
+				os.rename(oggname, oggname.replace(_working_, _outputs_))				
 			else: dprint('Ignoring: ' + fullname)
+			dprint('----------------------------------------------------------------------', True)
 	return 0
 
 if (__name__ == '__main__'):
