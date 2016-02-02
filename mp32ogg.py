@@ -1,9 +1,11 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 
 import os
 import argparse
+import threading
 import subprocess
+from time import sleep
 
 _debug_ = False
 _decode_ = '/usr/bin/lame --decode '
@@ -18,56 +20,76 @@ def dprint(data = '', force = False):
 		return
 	print(data)
 
+class convert_thread(threading.Thread):
+	def __init__(self, name = '', path = '', input_dir = '', output_dir = ''):
+		threading.Thread.__init__(self)
+		self.filename = name
+		self.filepath = path
+		self.toplevel = input_dir
+		self.move2dir = output_dir
+
+	def run(self):
+		global _decode_
+		global _normal_
+		global _encode_
+		songname = self.filename[:-4]
+		cleaname = self.filepath[:-4]
+		wavename = cleaname + '.wav'
+		oggname = cleaname + '.ogg'
+		dprint('Decoding: ' + songname)
+		decode = _decode_ + '"' + self.filepath + '"'
+		proc1 = subprocess.run(decode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
+		dprint('Normalizing: ' + songname)
+		normal = _normal_ + '"' + wavename + '"'
+		proc2 = subprocess.run(normal, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)			
+		dprint('Encoding: ' + songname)
+		encode = _encode_ + '"' + oggname + '" "' + wavename + '"'
+		proc3 = subprocess.run(encode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
+		dprint('Cleaning up temporary wav file')
+		os.remove(wavename)
+		dprint('Re-locating ' + oggname + ' => ' + self.move2dir)
+		os.rename(oggname, oggname.replace(self.toplevel, self.move2dir))				
+	
+# Main()
 def runmain():
 	global _debug_
-	global _decode_
-	global _normal_
-	global _encode_
 	parser = argparse.ArgumentParser(description = 'Python3 script to convert mp3s to oggs.')
 	parser.add_argument("input_directory", help = "Input Music Folder (mp3)")
 	parser.add_argument("output_directory", help = "Output Music Folder (ogg)")
 	parser.add_argument("-v", "--verbose", help = "Show debug information", action = "store_true")
+	parser.add_argument("-m", "--max_threads", help = "Maximum number of threads allowed", type = int)
 	args = parser.parse_args()
-	_working_ = args.input_directory
-	_outputs_ = args.output_directory
+	working = args.input_directory
+	outputs = args.output_directory
 	if (args.verbose): _debug_ = True
-	if (not os.path.exists(_outputs_)):
-		dprint('Creating directory: ' + _outputs_)
-		try: os.makedirs(_outputs_)
+	max_threads = 1
+	if (args.max_threads): max_threads = args.max_threads
+	if (not os.path.exists(outputs)):
+		dprint('Creating directory: ' + outputs)
+		try: os.makedirs(outputs)
 		except: raise
-	for root, folders, files in os.walk(_working_):
+	for root, folders, files in os.walk(working):
 		for folder in folders:
-			newfold = os.path.join(root, folder).replace(_working_, _outputs_)
+			newfold = os.path.join(root, folder).replace(working, outputs)
 			if (not os.path.exists(newfold)):
 				dprint('Creating directory: ' + newfold)
 				try: os.makedirs(newfold)
 				except: raise
 		x = 0
-		dprint('----------------------------------------------------------------------', True)
+		thread_pool = []
 		for file in files:
+			x += 1
 			fullname = os.path.join(root, file)
 			if (file.lower()[-4:] == '.mp3'):
-				x += 1
-				song = file[:-4]
-				cleaname = fullname[:-4]
-				wavename = cleaname + '.wav'
-				oggname = cleaname + '.ogg'
 				dprint('[' + str(x) + '/' + str(len(files)) + '] - Found: ' + fullname, True)
-				dprint('Decoding: ' + song)
-				decode = _decode_ + '"' + fullname + '"'
-				proc1 = subprocess.run(decode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
-				dprint('Normalizing: ' + song)
-				normal = _normal_ + '"' + wavename + '"'
-				proc2 = subprocess.run(normal, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)			
-				dprint('Encoding: ' + song)
-				encode = _encode_ + '"' + oggname + '" "' + wavename + '"'
-				proc3 = subprocess.run(encode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
-				dprint('Cleaning up temporary wav file')
-				os.remove(wavename)
-				dprint('Re-locating ' + oggname + ' => ' + _outputs_)
-				os.rename(oggname, oggname.replace(_working_, _outputs_))				
-			else: dprint('Ignoring: ' + fullname)
-			dprint('----------------------------------------------------------------------', True)
+				is_running = False
+				while (not is_running):
+					if (threading.active_count() < (max_threads + 1)):
+						thread_pool.append(convert_thread(file, fullname, working, outputs))
+						thread_pool[len(thread_pool) - 1].start()
+						is_running = True
+					else: sleep(0.1)
+			else: dprint('[' + str(x) + '/' + str(len(files)) + '] - Ignored: ' + fullname)
 	return 0
 
 if (__name__ == '__main__'):
