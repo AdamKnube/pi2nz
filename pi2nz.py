@@ -100,22 +100,24 @@ class tunez_machine(threading.Thread):
             return findstr
         else: return '"' + search + '" not found in list.'
     
-    def force(self, index):
-        if ((index > -1) and (index < len(self.thelist))):
-            if (self.playing): self.play()
-            self.current = index
-            self.play()
-            return index
+    def force(self, index = 0):
+        i = 0
+        try: 
+            i = int(index) 
+            if ((i > -1) and (i < len(self.thelist))):
+                if (self.playing): self.play()
+                self.current = i
+                self.play()
+        except: pass
+        finally: return i
     
     def play(self):
         dprint('Toggling PLAY mode:')
         if (self.playing == True): 
-            dprint('Stop.')
             self.playing = False
             self.was_stopped = True
             while (pygame.mixer.music.get_busy() > 0): sleep(self.lag)
         else: 
-            dprint('Play.')
             self.playing = True
             while (pygame.mixer.music.get_busy() == 0): sleep(self.lag)
         return self.playing
@@ -128,24 +130,19 @@ class tunez_machine(threading.Thread):
     def random(self):
         dprint('Toggling SHUFFLE mode:')
         tmp = ''
-        retstr = ''
         newlist = sorted(self.thelist)
         if (self.current > -1): tmp = self.thelist[self.current]
-        if (self.shuffle):
-            self.shuffle = False
-            dprint('Shuffle is off.')
-            retstr = 'Shuffle Off'
-        else:
+        if (self.shuffle): self.shuffle = False
+        else: 
             random.shuffle(newlist)
             self.shuffle = True
-            dprint('Shuffle is on.')
-            retstr = 'Shuffle On' 
         self.thelist = newlist
         if (self.current > -1): self.current = self.find(tmp)
-        return retstr 
+        return self.shuffle 
     
-    def volume(self, newvol = -1):
+    def volume(self, newvol = -1):        
         if ((newvol >= 0) and (newvol <= 100)):
+            dprint('Setting volumne to: ' + str(newvol))
             pygame.mixer.music.set_volume(newvol / 100)
         return pygame.mixer.music.get_volume() 
        
@@ -178,12 +175,16 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                     dprint('Found key: ' + key)
                     if (key == 'force'):
                         force1 = query[key][0]
-                        forced = int(force1)
-                        _the_tunez_.thelist[_the_tunez_.force(forced)]
-                        self.showpage()
-                        return
+                        try: 
+                            forced = int(force1)
+                            if ((forced >= 0) and (forced < len(_the_tunez_.thelist))):
+                                _the_tunez_.force(forced)
+                                self.showpage()
+                            else: int('fat fingers')
+                        except: self.showpage('Invalid force index: ' + force1)
+                        finally: return
                     elif (key == 'halt'):
-                        self.showpage('Shutting Down')
+                        self.showpage('Goodbye')
                         _killer_.start()
                         return
             else: 
@@ -202,8 +203,8 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         for item in post_data:
             if (_debug_):
                 dprint('Found POST variable: ' + item.strip() + ' = ' + str(post_data[item]).strip())
-            if (item == 'play'):
-                _the_tunez_.play()
+            if (item == 'play'):   
+                _the_tunez_.play()             
                 self.showpage()
                 return
             elif ((item == 'upload') and (str(post_data['ufile']) != '')):
@@ -214,7 +215,6 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 self.showpage(_the_tunez_.search(str(post_data['query'])[2:-2]))
                 return
             elif (item == 'shuffle'):
-                _the_tunez_.random()
                 self.showpage()
                 return 
             elif (item == 'next'):
@@ -238,7 +238,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 self.showpage()
                 return
             elif (item == 'halt'):
-                self.showpage('Shutting Down')
+                self.showpage('Goodbye')
                 _killer_.start()
                 return
             elif (item == 'v25'):
@@ -267,8 +267,8 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'<html><head><title>pi2nz</title></head><body bgcolor="#000000" text="#FFFFFF">\n')
         self.wfile.write(b'<center><h1><font color="#00FF00">pi2nz v' + str(_version_).encode('utf-8') + b'</font></h1></center>\n')
-        if (info == ''): self.wfile.write(b'<center><font size=+1>' + _the_tunez_.status().encode('utf-8') + b'</font></center><br>\n')
-        else: self.wfile.write(b'<center><font size=+1>' + info.encode('utf-8') + b'</font></center><br>\n')
+        self.wfile.write(b'<center><font size=+1>' + _the_tunez_.status().encode('utf-8') + b'</font></center><br>\n')
+        if (info != ''): self.wfile.write(b'<center><font size=+1>' + info.encode('utf-8') + b'</font></center><br>\n')
         (who, where) = self.request.getsockname()
         self.wfile.write(b'<form action="http://' + who.encode('utf-8') + b':' + str(where).encode('utf-8') + b'/" method="POST">\n')
         self.wfile.write(b'<center><table><tr>')
