@@ -49,7 +49,7 @@ class tunez_machine(threading.Thread):
         if (len(self.thelist) == 0):
             dprint('Error: No OGG files were found in: ' + self.root_folder, True)
             self.active = False
-        dprint('Music thread running with ' + str(len(self.thelist)) + ' songs.', True) 
+        dprint('Music thread starting with ' + str(len(self.thelist)) + ' songs.', True) 
         while (self.active):
             if ((self.playing == True) and (pygame.mixer.music.get_busy() == 0)):
                 if ((self.current < 0) or (self.current >= len(self.thelist))):
@@ -180,7 +180,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                             if ((forced >= 0) and (forced < len(_the_tunez_.thelist))):
                                 _the_tunez_.force(forced)
                                 self.showpage()
-                            else: int('fat fingers')
+                            else: int('dumbass')
                         except: self.showpage('Invalid force index: ' + force1)
                         finally: return
                     elif (key == 'halt'):
@@ -339,7 +339,7 @@ def runmain():
     while ((not _the_tunez_.is_ready()) and (x <= (5 / lagwagon))): 
         sleep(lagwagon)
         x += 1
-    if (x > 10): 
+    if (x > (5 / lagwagon)): 
         dprint('Failed to initialize music player, aborting!', True)
         return 1
     if (args.volume): _the_tunez_.volume(args.volume)
