@@ -10,7 +10,7 @@ import http.server
 import urllib.parse
 from time import sleep
 
-_version_ = 1.2                                     # version
+_version_ = 1.4                                     # version
 _debug_ = False                                     # debug mode
 _upload_ = False                                    # allow uploads
 _killer_ = None                                     # shutdown thread
@@ -209,11 +209,14 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 return
             elif ((item == 'upload') and (str(post_data['ufile']) != '')):
                 dprint('upload')
-                self.showpage()
+                self.showpage('Uploading not yet implemented.')
                 return
-            elif ((item == 'search') and (str(post_data['query']) != '')):
-                self.showpage(_the_tunez_.search(str(post_data['query'])[2:-2]))
-                return
+            elif (item == 'search'):
+                try:
+                    query = str(post_data['query'])[2:-2]
+                    self.showpage(_the_tunez_.search(query))
+                except: self.showpage('Invalid search string')
+                finally: return
             elif (item == 'shuffle'):
                 _the_tunez_.random()
                 self.showpage()
@@ -286,16 +289,14 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
         self.wfile.write(b'<td align=center><input type="submit" name="v50" value="50%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
         self.wfile.write(b'<td align=center><input type="submit" name="v75" value="75%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
         self.wfile.write(b'<td align=center><input type="submit" name="v100" value="100%" style="width: 200px; font-size: 50px; height: 120px"/></td>\n')
+        self.wfile.write(b'</tr><tr>')
+        self.wfile.write(b'<td align=center colspan=4><input type="submit" name="halt" value="Shutdown" style="width: 800px; font-size: 50px; height: 120px"/></td>\n')	
         self.wfile.write(b'</tr></table><br></center></form>\n')
         if (_upload_):
             self.wfile.write(b'<form action="http://' + who.encode('utf-8') + b':' + str(where).encode('utf-8') + b'/" method="POST" enctype="multipart/form-data">\n')
             self.wfile.write(b'<center><input type="file" name="ufile" size="40" style="width: 800px; font-size: 50px; height: 120px" /></center>\n')
             self.wfile.write(b'<center><input type="submit" name="upload" value="Upload..." style="width: 800px; font-size: 50px; height: 120px"/></center>\n')
             self.wfile.write(b'</form>\n')
-        if (_debug_):
-            self.wfile.write(b'<form action="http://' + who.encode('utf-8') + b':' + str(where).encode('utf-8') + b'/" method="POST">\n')
-            self.wfile.write(b'<center><input type="submit" name="halt" value="Shut Down" style="width: 800px; font-size: 50px; height: 120px"/></center>\n')
-            self.wfile.write(b'</form>\n')               
         self.wfile.write(b'</body></html>\n\n')
 
 # Exit thread
