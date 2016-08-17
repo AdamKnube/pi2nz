@@ -10,7 +10,7 @@ import http.server
 import urllib.parse
 from time import sleep
 
-_version_ = 1.1                                     # version
+_version_ = 1.2                                     # version
 _debug_ = False                                     # debug mode
 _upload_ = False                                    # allow uploads
 _killer_ = None                                     # shutdown thread
@@ -77,7 +77,7 @@ class tunez_machine(threading.Thread):
         for root, folders, files in os.walk(where):
             for thisfile in files:
                 absolute = os.path.join(root, thisfile)    
-                if ( thisfile[-4:].lower() == '.ogg'):
+                if ((thisfile[-4:].lower() == '.mp3') or (thisfile[-4:].lower() == '.ogg')):
                     templist.append(absolute)
                     dprint('Added: ' + thisfile)
                 else: dprint('Ignored: ' + thisfile + ' (' + thisfile[-4:].lower() + ')')
@@ -215,6 +215,7 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
                 self.showpage(_the_tunez_.search(str(post_data['query'])[2:-2]))
                 return
             elif (item == 'shuffle'):
+                _the_tunez_.random()
                 self.showpage()
                 return 
             elif (item == 'next'):
