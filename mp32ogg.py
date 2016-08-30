@@ -85,9 +85,9 @@ def runmain():
 		dprint('Creating directory: ' + tempdir)
 		try: os.makedirs(tempdir)
 		except: raise		
-	if (working[len(working)] == '/'): working = working[:-1]
-	if (outputs[len(outputs)] == '/'): outputs = outputs[:-1]
-	if (tempdir[len(tempdir)] == '/'): tempdir = tempdir[:-1]
+	if (working[len(working) - 1] == '/'): working = working[:-1]
+	if (outputs[len(outputs) - 1] == '/'): outputs = outputs[:-1]
+	if (tempdir[len(tempdir) - 1] == '/'): tempdir = tempdir[:-1]
 	for root, folders, files in os.walk(working):
 		for folder in folders:
 			newfold = os.path.join(root, folder).replace(working, outputs)
