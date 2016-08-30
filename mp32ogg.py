@@ -2,6 +2,7 @@
 #
 
 import os
+import shutil
 import argparse
 import threading
 import subprocess
@@ -9,7 +10,7 @@ from time import sleep
 
 _debug_ = False
 _decode_ = '/usr/bin/lame --decode '
-_normal_ = '/usr/bin/normalize '
+_normal_ = '/usr/bin/normalize --clipping '
 _encode_ = 'oggenc -q7 --output='
 
 # Debug printer
@@ -21,12 +22,13 @@ def dprint(data = '', force = False):
 	print(data)
 
 class convert_thread(threading.Thread):
-	def __init__(self, name = '', path = '', input_dir = '', output_dir = ''):
+	def __init__(self, name = '', path = '', input_dir = '', output_dir = '', temp_dir = ''):
 		threading.Thread.__init__(self)
 		self.filename = name
 		self.filepath = path
 		self.toplevel = input_dir
 		self.move2dir = output_dir
+		self.tempdir = temp_dir
 
 	def run(self):
 		global _decode_
@@ -34,40 +36,55 @@ class convert_thread(threading.Thread):
 		global _encode_
 		songname = self.filename[:-4]
 		cleaname = self.filepath[:-4]
-		wavename = cleaname + '.wav'
-		oggname = cleaname + '.ogg'
+		wavname = os.path.join(self.tempdir,  songname + '.' + str(self.ident))
+		encname = wavname + '.enc'
+		outname = cleaname.replace(self.toplevel, self.move2dir) + '.ogg'
 		dprint('Decoding: ' + songname)
-		decode = _decode_ + '"' + self.filepath + '"'
+		decode = _decode_ + '"' + self.filepath + '" "' + wavname + '"'
 		proc1 = subprocess.run(decode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
 		dprint('Normalizing: ' + songname)
-		normal = _normal_ + '"' + wavename + '"'
+		normal = _normal_ + '"' + wavname + '"'
 		proc2 = subprocess.run(normal, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)			
-		dprint('Encoding: ' + songname)
-		encode = _encode_ + '"' + oggname + '" "' + wavename + '"'
+		dprint('Re-Encoding: ' + songname)
+		if (_encode_.find('lame') < 0): encode = _encode_ + '"' + encname + '" "' + wavname + '"'
+		else: 
+			encode = _encode_ + '"' + wavname + '" "' + encname + '"'
+			outname = cleaname.replace(self.toplevel, self.move2dir) + '.mp3'
 		proc3 = subprocess.run(encode, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, shell=True)
 		dprint('Cleaning up temporary wav file')
-		os.remove(wavename)
-		dprint('Re-locating ' + oggname + ' => ' + self.move2dir)
-		os.rename(oggname, oggname.replace(self.toplevel, self.move2dir))				
-	
+		os.remove(wavname)
+		dprint('Re-locating ' + encname + ' => ' + self.move2dir)
+		shutil.move(encname , outname)
+		
 # Main()
 def runmain():
 	global _debug_
 	parser = argparse.ArgumentParser(description = 'Python3 script to convert mp3s to oggs.')
 	parser.add_argument("input_directory", help = "Input Music Folder (mp3)")
 	parser.add_argument("output_directory", help = "Output Music Folder (ogg)")
+	parser.add_argument("-t", "--temp_directory", help = "Use This Temporary Directory (/tmp/mp32ogg/)")
 	parser.add_argument("-v", "--verbose", help = "Show debug information", action = "store_true")
 	parser.add_argument("-m", "--max_threads", help = "Maximum number of threads allowed", type = int)
+	parser.add_argument("-n", "--no_ogg", help = "Keep as MP3s just clean em up", action = "store_true")
 	args = parser.parse_args()
 	working = args.input_directory
 	outputs = args.output_directory
 	if (args.verbose): _debug_ = True
-	max_threads = 1
+	max_threads = 2
 	if (args.max_threads): max_threads = args.max_threads
+	tempdir = '/tmp/mp32ogg'
+	if (args.temp_directory): tempdir = args.temp_directory
+	if (args.no_ogg): 
+		global _encode_
+		_encode_ = 'lame -h '
 	if (not os.path.exists(outputs)):
 		dprint('Creating directory: ' + outputs)
 		try: os.makedirs(outputs)
 		except: raise
+	if (not os.path.exists(tempdir)):
+		dprint('Creating directory: ' + tempdir)
+		try: os.makedirs(tempdir)
+		except: raise		
 	for root, folders, files in os.walk(working):
 		for folder in folders:
 			newfold = os.path.join(root, folder).replace(working, outputs)
@@ -85,7 +102,7 @@ def runmain():
 				is_running = False
 				while (not is_running):
 					if (threading.active_count() < (max_threads + 1)):
-						thread_pool.append(convert_thread(file, fullname, working, outputs))
+						thread_pool.append(convert_thread(file, fullname, working, outputs, tempdir))
 						thread_pool[len(thread_pool) - 1].start()
 						is_running = True
 					else: sleep(0.1)
