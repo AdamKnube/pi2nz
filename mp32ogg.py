@@ -11,7 +11,7 @@ from time import sleep
 _debug_ = False
 _decode_ = '/usr/bin/lame --decode '
 _normal_ = '/usr/bin/normalize --clipping '
-_encode_ = 'oggenc -q7 --output='
+_encode_ = '/usr/bin/oggenc -q7 --output='
 
 # Debug printer
 def dprint(data = '', force = False):
@@ -85,6 +85,9 @@ def runmain():
 		dprint('Creating directory: ' + tempdir)
 		try: os.makedirs(tempdir)
 		except: raise		
+	if (working[len(working)] == '/'): working = working[:-1]
+	if (outputs[len(outputs)] == '/'): outputs = outputs[:-1]
+	if (tempdir[len(tempdir)] == '/'): tempdir = tempdir[:-1]
 	for root, folders, files in os.walk(working):
 		for folder in folders:
 			newfold = os.path.join(root, folder).replace(working, outputs)
