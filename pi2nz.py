@@ -10,12 +10,12 @@ import http.server
 import urllib.parse
 from time import sleep
 
-_version_ = 1.4                                     # version
+_version_ = 1.5                                     # version
 _debug_ = False                                     # debug mode
 _upload_ = False                                    # allow uploads
 _killer_ = None                                     # shutdown thread
 _the_tunez_ = None                                  # music thread
-_the_server_ = None                                 # webserver thread
+_the_tubez_ = None                                 # webserver thread
 
 # Debug printer
 def dprint(data = '', force = False):
@@ -302,10 +302,10 @@ class serv_backend(http.server.BaseHTTPRequestHandler):
 # Exit thread
 class kthread(threading.Thread):
     global _the_tunez_
-    global _the_server_
+    global _the_tubez_
     def run(self):
         _the_tunez_.die()
-        _the_server_.shutdown()
+        _the_tubez_.shutdown()
 
 # Main()
 def runmain():
@@ -313,7 +313,7 @@ def runmain():
     global _upload_
     global _killer_
     global _the_tunez_
-    global _the_server_
+    global _the_tubez_
     parser = argparse.ArgumentParser(description = 'Python3 music player with http remote control.')
     parser.add_argument("root", help = "Root music folder")
     parser.add_argument("-a", "--address", help = "Bind address")
@@ -350,8 +350,8 @@ def runmain():
     showaddy = bind_address
     if (showaddy == ''): showaddy = '0.0.0.0'
     dprint('Starting webserver at: http://' + showaddy + ':' + str(bind_port) + '/.', True)
-    _the_server_ = http.server.HTTPServer((bind_address, bind_port), serv_backend)
-    _the_server_.serve_forever()
+    _the_tubez_ = http.server.HTTPServer((bind_address, bind_port), serv_backend)
+    _the_tubez_.serve_forever()
     _the_tunez_.join()
     _killer_.join()
     dprint('Goodbye.', True)

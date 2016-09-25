@@ -11,7 +11,7 @@ from time import sleep
 _debug_ = False
 _decode_ = '/usr/bin/lame --decode '
 _normal_ = '/usr/bin/normalize --clipping '
-_encode_ = '/usr/bin/oggenc -q7 --output='
+_encode_ = '/usr/bin/oggenc -q7 --resample 22050 --downmix --output='
 
 # Debug printer
 def dprint(data = '', force = False):
