@@ -1,0 +1,12 @@
+[Unit]
+Description=pi2nz Server
+After=network.target ssh.service
+
+[Service]
+Type=simple
+Environment="SERV_ADDY=127.0.0.1" "XDG_RUNTIME_DIR=/run/user/0"
+ExecStart=/root/src/pi2nz/pi2nz.py /mnt/media/Music --address $SERV_ADDY --port 80 --random
+ExecStop=/usr/bin/curl -s http://$SERV_ADDY/\?halt=True > /dev/null
+
+[Install]
+WantedBy=multi-user.target

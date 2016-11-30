@@ -70,7 +70,7 @@ def runmain():
 	working = args.input_directory
 	outputs = args.output_directory
 	if (args.verbose): _debug_ = True
-	max_threads = 2
+	max_threads = 1
 	if (args.max_threads): max_threads = args.max_threads
 	tempdir = '/tmp/mp32ogg'
 	if (args.temp_directory): tempdir = args.temp_directory
